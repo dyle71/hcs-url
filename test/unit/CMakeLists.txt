@@ -12,5 +12,5 @@ set(UNIT_TEST_SRC
 )
 
 add_executable(unit-tests ${UNIT_TEST_SRC} ${UNIT_TEST_OPENSSL_SRC})
-target_link_libraries(unit-tests hcs-url ${CONAN_LIBS_GTEST} ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(unit-tests ${CONAN_LIBS_GTEST} ${CMAKE_REQUIRED_LIBRARIES})
 gtest_add_tests(unit-tests "" AUTO)

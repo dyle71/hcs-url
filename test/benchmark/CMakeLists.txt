@@ -6,10 +6,3 @@
 # Oliver Maurhart <info@headcode.space>, https://www.headcode.space
 # ------------------------------------------------------------
 
-include_directories(${CMAKE_SOURCE_DIR}/include;${TEST_BASE_DIR};${CMAKE_BINARY_DIR})
-set(BENCHMARK_TEST_SRC
-    test_benchmark.cpp
-)
-
-add_executable(benchmark-tests ${BENCHMARK_TEST_SRC} ${BENCHMARK_TEST_OPENSSL_SRC})
-target_link_libraries(benchmark-tests hcs-url ${CONAN_LIBS_GTEST} ${CMAKE_REQUIRED_LIBRARIES})
