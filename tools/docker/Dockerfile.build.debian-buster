@@ -1,0 +1,42 @@
+# ------------------------------------------------------------
+# This file is a Dockerfile of url of headcode.space
+#
+# The 'LICENSE.txt' file in the project root holds the software license.
+# Copyright (C) 2021 headcode.space e.U.
+# Oliver Maurhart <info@headcode.space>, https://www.headcode.space
+# ------------------------------------------------------------
+
+FROM debian:10
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    gcc \
+    g++ \
+    gcovr \
+    git \
+    doxygen \
+    graphviz \
+    curl \
+    wget \
+    ninja-build \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install conan
+RUN conan profile new default --detect
+RUN conan profile update settings.compiler.libcxx=libstdc++11 default
+RUN conan remote add gitlab https://gitlab.com/api/v4/packages/conan
+
+# install non repository packages
+#COPY install/*.deb /
+#COPY install/debian-buster/*.deb /
+#RUN dpkg --install /*.deb
+
+RUN mkdir -p /build
+WORKDIR /build
+
+CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
+
