@@ -1,0 +1,101 @@
+# ------------------------------------------------------------
+# This file is the main CMakeLists of url of headcode.space
+#
+# The 'LICENSE.txt' file in the project root holds the software license.
+# Copyright (C) 2021 headcode.space e.U.  
+# Oliver Maurhart <info@headcode.space>, https://www.headcode.space
+# ------------------------------------------------------------
+
+stages:
+  - build
+  - package
+
+build:
+  stage: build
+  image: registry.gitlab.com/headcode.space/url:ubuntu-focal
+  script:
+    - git submodule init
+    - git submodule update
+    - rm -rf build &> /dev/null
+    - mkdir -p build
+    - cd build
+    - cmake -GNinja -DBUILD_TESTING=On -DCMAKE_BUILD_TYPE=Debug -DPROFILING_MODE_ENABLED:Bool=On ..
+    - ninja
+    - ctest -VV -F --timeout 30.0
+    - ninja run-gcovr
+    - ninja package_source
+    - cd ${CI_PROJECT_DIR}
+    # - sonar-scanner -Dsonar.host.url=${SONAR_HOST} -Dsonar.login=${SONAR_LOGIN}
+  artifacts:
+    paths:
+      - build/*.tar.gz
+      - build/gcovr-report.xml
+    name: ${CI_PROJECT_NAME}-sources
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+
+package-debian-buster:
+  stage: package
+  image: registry.gitlab.com/headcode.space/url:debian-buster
+  script:
+    - git submodule init
+    - git submodule update
+    - rm -rf build &> /dev/null
+    - mkdir -p build
+    - cd build
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=DEB -DCPACK_SYSTEM_NAME=debian-buster -DCI_JOB_TOKEN=$CI_JOB_TOKEN ..
+    - ninja
+    - ninja package
+    - ninja gitlab_push_package
+  artifacts:
+    paths:
+      - build/*.deb
+    name: ${CI_PROJECT_NAME}-debian-buster
+
+package-ubuntu-focal:
+  stage: package
+  image: registry.gitlab.com/headcode.space/url:ubuntu-focal
+  script:
+    - git submodule init
+    - git submodule update
+    - rm -rf build &> /dev/null
+    - mkdir -p build
+    - cd build
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=DEB -DCPACK_SYSTEM_NAME=ubuntu-focal -DCI_JOB_TOKEN=$CI_JOB_TOKEN ..
+    - ninja
+    - ninja package
+    - ninja gitlab_push_package
+  artifacts:
+    paths:
+      - build/*.deb
+    name: ${CI_PROJECT_NAME}-ubuntu-focal
+
+package-fedora32:
+  stage: package
+  image: registry.gitlab.com/headcode.space/url:fedora32
+  script:
+    - git submodule init
+    - git submodule update
+    - rm -rf build &> /dev/null
+    - mkdir -p build
+    - cd build
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCPACK_GENERATOR=RPM -DCPACK_SYSTEM_NAME=fedora32 -DCI_JOB_TOKEN=$CI_JOB_TOKEN ..
+    - ninja
+    - ninja package
+    - ninja gitlab_push_package
+  artifacts:
+    paths:
+      - build/*.rpm
+    name: ${CI_PROJECT_NAME}-fedora32
+
+package-conan:
+  stage: package
+  image: registry.gitlab.com/headcode.space/url:ubuntu-focal
+  script:
+    - git submodule init
+    - git submodule update
+    - rm -rf build &> /dev/null
+    - mkdir -p build
+    - cd build
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCONAN_USER=headcode.space+url -DCONAN_CHANNEL=stable -DCONAN_REMOTE=gitlab ..
+    - ninja conan
+    - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} ninja conan_upload
