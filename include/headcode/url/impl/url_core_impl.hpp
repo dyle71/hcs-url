@@ -58,8 +58,18 @@ inline bool headcode::url::URL::IsDigit(char c) const {
 }
 
 
+inline bool headcode::url::URL::IsPathCharacter(char c) const {
+    return IsAlpha(c) || IsDigit(c) || (c == '+') || (c == '-') || (c == '.');
+}
+
+
 inline bool headcode::url::URL::IsSchemeChar(char c) const {
     return IsAlpha(c) || IsDigit(c) || (c == '+') || (c == '-') || (c == '.');
+}
+
+
+inline bool headcode::url::URL::IsUnreserved(char c) const {
+    return IsAlpha(c) || IsDigit(c) || (c == '-') || (c == '.') || (c == '_') || (c == '~');
 }
 
 
@@ -77,16 +87,24 @@ inline void headcode::url::URL::Parse(std::string const & url) {
     // the internal parsed_ std::string_view classes will
     // hold pointers to the url_ field. --> optimistic approach.
     url_ = url;
+    bool parsed_ok = true;
     auto scheme = std::string_view(url_.data(), colon);
     auto [hier_part, query, fragment] =
             Split(std::string_view(url_.data() + colon + 1, url_.size() - (scheme.size() + 1)));
 
-    auto valid_scheme = ParseScheme(scheme);
-    if (valid_scheme) {
+    parsed_ok = ParseScheme(scheme);
+    if (parsed_ok) {
 
-        parsed_.scheme = scheme;
+        auto [parsed_ok, authority, path] = SplitHierPart(hier_part);
+        if (parsed_ok) {
 
-    } else {
+            parsed_.authority = authority;
+            parsed_.path = path;
+            parsed_.scheme = scheme;
+        }
+    }
+
+    if (!parsed_ok) {
         url_ = std::string{};
     }
 }
@@ -130,6 +148,42 @@ inline std::tuple<std::string_view, std::string_view, std::string_view> headcode
     }
 
     return {hier_part, query, fragment};
+}
+
+
+inline std::tuple<bool, std::string_view, std::string_view> headcode::url::URL::SplitHierPart(
+        std::string_view hier_part) const {
+
+    std::string_view authority;
+    std::string_view path;
+    bool parsed_ok = true;
+
+    if (!hier_part.empty()) {
+
+        if (hier_part.substr(0, 2) == "//") {
+
+            // This is "//" authority ["/" path]
+            authority = hier_part.substr(2, std::string::npos);
+            auto slash = authority.find_first_of('/');
+            if (slash != std::string::npos) {
+                path = authority.substr(slash, std::string::npos);
+                authority = authority.substr(0, slash);
+            }
+
+            // path must be empty or absolute
+            if (!(path.empty() || (path[0] == '/'))) {
+                parsed_ok = false;
+                authority = std::string_view{};
+                path = std::string_view{};
+            }
+        } else {
+
+            parsed_ok = true;
+            path = hier_part;
+        }
+    }
+
+    return {parsed_ok, authority, path};
 }
 
 

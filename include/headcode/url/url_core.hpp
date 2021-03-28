@@ -43,8 +43,11 @@ class URL {
      * @brief   The result of a parsed url.
      */
     struct ParsedUrl {
+
         std::string_view scheme;           //!< @brief The parsed scheme of the URL.
-        std::string_view hier_part;        //!< @brief The parsed hier-part of the URL.
+        std::string_view authority;        //!< @brief The parsed authority of the URL.
+        std::string_view path;             //!< @brief The parsed path of the URL.
+
     } parsed_;
 
 public:
@@ -56,6 +59,22 @@ public:
         if (!url.empty()) {
             Parse(std::move(url));
         }
+    }
+
+    /**
+     * @brief   Returns the parsed authority.
+     * @return  The authority parsed.
+     */
+    [[nodiscard]] std::string_view const & GetAuthority() const {
+        return parsed_.authority;
+    }
+
+    /**
+     * @brief   Returns the parsed path.
+     * @return  The path parsed.
+     */
+    [[nodiscard]] std::string_view const & GetPath() const {
+        return parsed_.path;
     }
 
     /**
@@ -98,11 +117,25 @@ private:
     [[nodiscard]] bool IsDigit(char c) const;
 
     /**
+     * @brief   Checks if the given character is a valid path character
+     * @param   c       the character to test.
+     * @return  true, if the characters can be used in a path segment.
+     */
+    [[nodiscard]] bool IsPathCharacter(char c) const;
+
+    /**
      * @brief   Checks if the given character is a valid character for a scheme
      * @param   c       the character to test.
      * @return  true, if the character can be used in a scheme string.
      */
     [[nodiscard]] bool IsSchemeChar(char c) const;
+
+    /**
+     * @brief   Checks if the given character is in the set of unreserved characters
+     * @param   c       the character to test.
+     * @return  true, if the characters is part of the unreserved set.
+     */
+    [[nodiscard]] bool IsUnreserved(char c) const;
 
     /**
      * @brief   Parses the given url.
@@ -125,13 +158,20 @@ private:
      */
     [[nodiscard]] std::tuple<std::string_view, std::string_view, std::string_view> Split(
             std::string_view url_rest) const;
+
+    /**
+     * @brief   Split the hier-part into authority and path
+     * @param   hier_path           the hier-path part of the URL
+     * @return  parsing ok, the authority and the path
+     */
+    [[nodiscard]] std::tuple<bool, std::string_view, std::string_view> SplitHierPart(std::string_view hier_part) const;
 };
 
 
 }
 
 
-#include "url_core_bits.hpp"
+#include "headcode/url/impl/url_core_impl.hpp"
 
 
 #endif
