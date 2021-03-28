@@ -14,8 +14,10 @@
 
 
 TEST(URL, empty) {
+
     auto url1 = headcode::url::URL{};
     EXPECT_TRUE(url1.IsNull());
+
     auto url2 = headcode::url::URL{"foo:"};
     EXPECT_FALSE(url2.IsNull());
 }
@@ -23,9 +25,11 @@ TEST(URL, empty) {
 
 TEST(URL, regular) {
 
-    auto url = headcode::url::URL{"http://this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment"};
+    auto raw = "http://this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
+    auto url = headcode::url::URL{raw};
     EXPECT_FALSE(url.IsNull());
 
+    EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetScheme() == "http");
 }
