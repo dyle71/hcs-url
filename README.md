@@ -1,6 +1,7 @@
 # hcs-url
 
-This C++17 library which is capable of parsing and resolving URLs quickly.
+This C++17 library which is capable of parsing and resolving URLs (URIs) quickly as
+defined in the RFC 3968.
 
 __TBD__
 

@@ -6,12 +6,27 @@
  * Oliver Maurhart <info@headcode.space>, https://www.headcode.space
  */
 
-#ifndef HEADCODE_SPACE_URL_URL_HPP
-#define HEADCODE_SPACE_URL_URL_HPP
+#ifndef HEADCODE_SPACE_URL_IPADDRESS_HPP
+#define HEADCODE_SPACE_URL_IPADDRESS_HPP
+
+#include <string>
 
 
-#include "url_core.hpp"
-#include "version.hpp"
+/**
+ * @brief   The headcode url namespace
+ */
+namespace headcode::url {
+
+
+/**
+ * @brief   An IP address on the web.
+ */
+class IPAddress {
+
+};
+
+
+}
 
 
 #endif

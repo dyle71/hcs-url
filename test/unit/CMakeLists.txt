@@ -8,6 +8,7 @@
 
 include_directories(${CMAKE_SOURCE_DIR}/include;${TEST_BASE_DIR};${CMAKE_BINARY_DIR})
 set(UNIT_TEST_SRC
+    test_url.cpp
     test_version.cpp
 )
 
