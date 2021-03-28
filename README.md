@@ -144,11 +144,11 @@ docker container tags.
 Example:
 ```bash
 $ cd build
-$ cmake -GNinja -D DOCKER_TAG=foo_builder
+$ cmake -GNinja -D DOCKER_TAG=foo
 ...
 $ ninja docker_images
 ...
-$ docker images | grep hcs-benchmark
+$ docker images | grep foo
 REPOSITORY            TAG             IMAGE ID       CREATED         SIZE
 foo                   debian-buster   5db480e2bcd8   2 minutes ago   810MB
 foo                   fedora32        7f87de7b5e7b   2 minutes ago   1.48GB
