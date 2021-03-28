@@ -63,44 +63,73 @@ inline bool headcode::url::URL::IsSchemeChar(char c) const {
 }
 
 
-inline void headcode::url::URL::Parse(std::string url) {
+inline void headcode::url::URL::Parse(std::string const & url) {
 
     if (url.empty()) {
         return;
     }
 
-    // optimistic approach
-    url_ = url;
-    if (ParseScheme()) {
+    auto colon = url.find_first_of(':');
+    if (colon == std::string::npos) {
+        return;
+    }
 
+    // the internal parsed_ std::string_view classes will
+    // hold pointers to the url_ field. --> optimistic approach.
+    url_ = url;
+    auto scheme = std::string_view(url_.data(), colon);
+    auto [hier_part, query, fragment] =
+            Split(std::string_view(url_.data() + colon + 1, url_.size() - (scheme.size() + 1)));
+
+    auto valid_scheme = ParseScheme(scheme);
+    if (valid_scheme) {
+
+        parsed_.scheme = scheme;
 
     } else {
-        // we failed to simply parse the scheme, which is essential.
         url_ = std::string{};
     }
 }
 
 
-inline bool headcode::url::URL::ParseScheme() {
-
-    if (url_.empty()) {
-        return false;
-    }
-
-    auto colon = url_.find_first_of(':');
-    if (colon == std::string::npos) {
-        return false;
-    }
-
-    auto scheme = std::string_view(url_.data(), colon);
+inline bool headcode::url::URL::ParseScheme(std::string_view const & scheme) const {
     if (!scheme.empty() && IsAlpha(scheme[0])) {
-        if (std::all_of(scheme.cbegin() + 1, scheme.cend(), [&](auto c){ return IsSchemeChar(c); })) {
-            parsed_.scheme = scheme;
-            return true;
+        return std::all_of(scheme.cbegin() + 1, scheme.cend(), [&](auto c) { return IsSchemeChar(c); });
+    }
+    return false;
+}
+
+
+inline std::tuple<std::string_view, std::string_view, std::string_view> headcode::url::URL::Split(
+        std::string_view url_rest) const {
+
+    std::string_view hier_part;
+    std::string_view query;
+    std::string_view fragment;
+
+    if (!url_rest.empty()) {
+
+        hier_part = url_rest;
+        auto question_or_hash = url_rest.find_first_of("?#");
+        if (question_or_hash != std::string::npos) {
+            hier_part = std::string_view{url_rest.data(), question_or_hash};
+            url_rest = std::string_view{url_rest.data() + hier_part.size(), url_rest.size() - hier_part.size()};
+        }
+
+        auto question = url_rest.find_first_of('?');
+        auto hash = url_rest.find_first_of('#');
+        if (question != std::string::npos) {
+            query = std::string_view{url_rest.data() + 1, hash - 1};
+            url_rest = std::string_view{url_rest.data() + query.size() + 1, url_rest.size() - query.size()};
+            hash = url_rest.find_first_of('#');
+        }
+
+        if (hash != std::string::npos) {
+            fragment = std::string_view{url_rest.data() + 1, url_rest.size() - 1};
         }
     }
 
-    return false;
+    return {hier_part, query, fragment};
 }
 
 

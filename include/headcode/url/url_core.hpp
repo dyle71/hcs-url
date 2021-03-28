@@ -10,6 +10,7 @@
 #define HEADCODE_SPACE_URL_URL_CORE_HPP
 
 #include <string>
+#include <tuple>
 #include <utility>
 
 
@@ -42,7 +43,8 @@ class URL {
      * @brief   The result of a parsed url.
      */
     struct ParsedUrl {
-        std::string_view scheme;        //!< @brief The parsed scheme part of the URL.
+        std::string_view scheme;           //!< @brief The parsed scheme of the URL.
+        std::string_view hier_part;        //!< @brief The parsed hier-part of the URL.
     } parsed_;
 
 public:
@@ -81,7 +83,6 @@ public:
     }
 
 private:
-
     /**
      * @brief   Checks if the given character belongs to the ALPHA characters.
      * @param   c       the character to test.
@@ -108,13 +109,22 @@ private:
      * If parsing succeeds, then the given url will be copied inside.
      * @param   url     the url to parse.
      */
-    void Parse(std::string url);
+    void Parse(std::string const & url);
 
     /**
      * @param   Parses the scheme part of the inner url.
+     * @param   scheme          the scheme to parse.
      * @return  true if the scheme has been set.
      */
-    bool ParseScheme();
+    bool ParseScheme(std::string_view const & scheme) const;
+
+    /**
+     * @brief   Split the url rest (all without the "scheme:" part) into hier_part, query and fragment
+     * @param   url_rest            the url without the "scheme:"
+     * @return  the hier_part, the query, and the fragment
+     */
+    [[nodiscard]] std::tuple<std::string_view, std::string_view, std::string_view> Split(
+            std::string_view url_rest) const;
 };
 
 

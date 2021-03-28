@@ -34,6 +34,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetScheme() == "http");
 }
 
+
 TEST(URL, bad_schemes) {
 
     std::list<std::string> bad_scheme_urls{
