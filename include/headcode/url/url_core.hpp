@@ -33,7 +33,9 @@ enum class ParseError {
     kInvalidUserInfo,          //!< @brief User info in URL is invalid.
     kInvalidHost,              //!< @brief Host part in URL is invalid.
     kInvalidPort,              //!< @brief Port part in URL is invalid.
-    kInvalidPath               //!< @brief Path part in URL is invalid.
+    kInvalidPath,              //!< @brief Path part in URL is invalid.
+    kInvalidQuery,             //!< @brief Query part in URL is invalid.
+    kInvalidFragment           //!< @brief Fragment part in URL is invalid.
 };
 
 
@@ -51,6 +53,51 @@ enum class ParseError {
  *       / \ /                        \
  *       urn:example:animal:ferret:nose
  *
+ * Objects of this class are constructed with a string. This string is parsed
+ * and the found particles of the URI are indexed. This is done by holding the
+ * starting position and the length of the sub string with the url as a
+ * std::pair<std::size_t, std::size_t>.
+ *
+ * The GetError() method reports if the parsing has been successful.
+ *
+ * This implementation strictly adheres RFC 3986 (https://www.ietf.org/rfc/rfc3986.txt).
+ *
+ * We also added some convenient methods:
+ *
+ *      GetPathPart(std::size_t n)      ... return the path with the n-segments.
+ *
+ * Example:
+ * @code
+ *      headcode::url::URL url{"https://www.some.address.com/this/is/a/path"};
+ *      std::cout << url.GetPathPart(2) << std::endl;       // <-- yields "/this/is"
+ * @endcode
+ *
+ * Also the url itself is not copied around but the accessor functions
+ * return std::string_view objects, meaning very little to nearly no overhead.
+ * However objects of this class must still exist, if you access the the data.
+ *
+ * Good example:
+ * @code
+ *      // good
+ *      void foo() {
+ *          headcode::url::URL url{"https://www.some.address.com"};
+ *          auto path = url.GetPath();
+ *          std::cout << path << std::endl;
+ *      }
+ * @endcode
+ *
+ * Bad example:
+ * @code
+ *      // bad
+ *      std::string_view foo() {
+ *          headcode::url::URL url{"https://www.some.addresss.com"};
+ *          return url.GetPath();           // <- returning object with pointer to inner temporary!
+ *      }
+ *      ...
+ *      void bar() {
+ *          std::cout << foo() << std::endl;
+ *      }
+ * @endcode
  */
 class URL {
 
@@ -67,6 +114,8 @@ class URL {
     std::pair<std::size_t, std::size_t> scheme_;          //!< @brief The parsed scheme of the URL.
     std::pair<std::size_t, std::size_t> userinfo_;        //!< @brief The parsed userinfo of the URL.
     std::pair<std::size_t, std::size_t> query_;           //!< @brief The parsed query of the URL.
+    std::vector<std::pair<std::size_t, std::size_t>>
+            query_items_;                                 //!< @brief The parsed query items of the query in the URL.
     std::pair<std::size_t, std::size_t> fragment_;        //!< @brief The parsed fragment of the URL.
 
 public:
@@ -122,6 +171,14 @@ public:
     }
 
     /**
+     * @brief   Returns the parsed fragment.
+     * @return  The fragment parsed.
+     */
+    [[nodiscard]] std::string_view GetFragment() const {
+        return std::string_view{url_}.substr(fragment_.first, fragment_.second);
+    }
+
+    /**
      * @brief   Returns the parsed host.
      * @return  The host parsed.
      */
@@ -161,6 +218,26 @@ public:
     }
 
     /**
+     * @brief   Returns the parsed query.
+     * @return  The query parsed.
+     */
+    [[nodiscard]] std::string_view GetQuery() const {
+        return std::string_view{url_}.substr(query_.first, query_.second);
+    }
+
+    /**
+     * @brief   Returns the parsed query items.
+     * @return  The query items parsed.
+     */
+    [[nodiscard]] std::vector<std::string_view> GetQueryItems() const {
+        std::vector<std::string_view> query_items;
+        for (auto const & p : query_items_) {
+            query_items.emplace_back(std::string_view{url_}.substr(p.first, p.second));
+        }
+        return query_items;
+    }
+
+    /**
      * @brief   Returns the parsed scheme.
      * @return  The scheme parsed.
      */
@@ -174,7 +251,7 @@ public:
      */
     [[nodiscard]] std::vector<std::string_view> GetSegments() const {
         std::vector<std::string_view> segments;
-        for (auto const & p: segments_) {
+        for (auto const & p : segments_) {
             segments.emplace_back(std::string_view{url_}.substr(p.first, p.second));
         }
         return segments;

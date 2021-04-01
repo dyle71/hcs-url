@@ -302,6 +302,38 @@ inline bool IsRegName(std::string_view const & host) {
 
 
 /**
+ * @brief   Checks if the given fragment is valid.
+ * @param   fragment        the fragment to check.
+ * @return  true, if it is.
+ */
+inline bool IsValidFragment(std::string_view const & fragment) {
+
+    if (fragment.empty()) {
+        return true;
+    }
+
+    for (std::string_view::size_type i = 0; i < fragment.size(); ++i) {
+
+        if (IsUnreserved(fragment[i]) || IsSubDelimiter(fragment[i]) || (fragment[i] == ':') || (fragment[i] == '@') ||
+            (fragment[i] == '/') || (fragment[i] == '?')) {
+            continue;
+        }
+
+        // pct-encoded
+        if (fragment[i] == '%' && i < (fragment.size() - 2) && IsHexDigit(fragment[i + 1]) &&
+            IsHexDigit(fragment[i + 2])) {
+            i += 2;
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
  * @brief   Checks if the given host is valid.
  * @param   host                the host to check.
  * @return  true, if it is.
@@ -347,6 +379,17 @@ inline bool IsValidPathSegment(std::string_view const & segment) {
     }
 
     return true;
+}
+
+
+/**
+ * @brief   Checks if the given query is valid.
+ * @param   query           the query to check.
+ * @return  true, if it is.
+ */
+inline bool IsValidQuery(std::string_view const & query) {
+    // The rules to fragments apply also to queries.
+    return IsValidFragment(query);
 }
 
 
@@ -412,7 +455,7 @@ inline ParseError ParsePort(std::string_view const & authority, std::pair<std::s
 
 
 /**
- * @brief   Parse the authority in the URL beginning at pos.
+ * @brief   Parse the authority in the URL beginning at start.
  * @param   url             the url to parse.
  * @param   start           start of authority part in url
  * @param   authority       the (full) authority to write
@@ -505,6 +548,26 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
 
 
 /**
+ * @brief   Parse the fragment in the URL beginning at start.
+ * @param   url         the url to parse, beginning at the scheme.
+ * @param   start       the start index of the query in url.
+ * @param   fragment    the identified fragment start and length in url.
+ * @return  ParseError value and end position of parsing.
+ */
+inline std::tuple<ParseError, std::string::size_type> ParseFragment(std::string_view const & url,
+                                                                    std::size_t start,
+                                                                    std::pair<std::size_t, std::size_t> & fragment) {
+    auto last = url.size();
+    fragment = std::make_pair(start, last - start);
+    if (!IsValidFragment(url.substr(fragment.first, fragment.second))) {
+        return {ParseError::kInvalidFragment, last};
+    }
+
+    return {ParseError::kNoError, last};
+}
+
+
+/**
  * @brief   Parse the path of the url and provide each segment.
  * @param   url                 the url to parse.
  * @param   start               start of path part in url.
@@ -574,7 +637,50 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
 
 
 /**
- * @brief   Parse the scheme in the URL beginning at pos.
+ * @brief   Parse the query in the URL beginning at start.
+ * @param   url         the url to parse, beginning at the scheme.
+ * @param   start       the start index of the query in url.
+ * @param   query       the identified query start and length in url.
+ * @return  ParseError value and end position of parsing.
+ */
+inline std::tuple<ParseError, std::string::size_type> ParseQuery(
+        std::string_view const & url,
+        std::size_t start,
+        std::pair<std::size_t, std::size_t> & query,
+        std::vector<std::pair<std::size_t, std::size_t>> & query_items) {
+
+    auto last = url.substr(start).find_first_of('#');
+    if (last == std::string_view::npos) {
+        last = url.size() - start;
+    }
+    query = std::make_pair(start, last);
+    last += start;
+
+    auto query_part = url.substr(query.first, query.second);
+    if (!IsValidQuery(query_part)) {
+        return {ParseError::kInvalidQuery, last};
+    }
+
+    std::size_t i{0};
+    auto nibbled_query = query_part;
+    do {
+
+        auto query_item_part = nibbled_query.substr(0, nibbled_query.find_first_of('&'));
+        query_items.emplace_back(start + i, query_item_part.size());
+
+        i += query_item_part.size() + 1;
+        if (i < nibbled_query.size()) {
+            nibbled_query = query_part.substr(i);
+        }
+
+    } while (i < query_part.size());
+
+    return {ParseError::kNoError, last};
+}
+
+
+/**
+ * @brief   Parse the scheme in the URL beginning at start.
  * @param   url         the url to parse, beginning at the scheme.
  * @param   start       the start index of the scheme in url.
  * @param   scheme      the identified scheme start and length in url.
@@ -608,8 +714,6 @@ inline std::tuple<ParseError, std::string::size_type> ParseScheme(std::string_vi
 
     return {ParseError::kInvalidScheme, pos};
 }
-
-
 }
 
 
@@ -652,6 +756,7 @@ inline void headcode::url::URL::Parse() {
                 port_ = std::make_pair(i, 0);
                 userinfo_ = std::make_pair(i, 0);
                 query_ = std::make_pair(i, 0);
+                query_items_.clear();
                 fragment_ = std::make_pair(i, 0);
 
                 if ((i <= (url_.size() - 2)) && (url_.substr(i, 2) == "//")) {
@@ -675,20 +780,34 @@ inline void headcode::url::URL::Parse() {
             case ParserState::kParsingPath:
                 std::tie(error_, pos) = ParsePath(url_sv, i, authority_.second != 0, path_, segments_);
                 if (error_ == ParseError::kNoError) {
-                    i += pos;
+                    i = pos - 1;
                     state = ParserState::kParsingQueryOrFragment;
                 }
                 break;
-                /*
+
             case ParserState::kParsingQueryOrFragment:
+                if (url_[i] == '?') {
+                    state = ParserState::kParsingQuery;
+                } else if (url_[i] == '#') {
+                    state = ParserState::kParsingFragment;
+                }
                 break;
 
             case ParserState::kParsingQuery:
+                std::tie(error_, pos) = ParseQuery(url_sv, i, query_, query_items_);
+                if (error_ == ParseError::kNoError) {
+                    i = pos;
+                    state = ParserState::kParsingFragment;
+                }
                 break;
 
             case ParserState::kParsingFragment:
+                std::tie(error_, pos) = ParseFragment(url_sv, i, fragment_);
+                if (error_ == ParseError::kNoError) {
+                    i = pos;
+                    state = ParserState::kParsingFragment;
+                }
                 break;
-                 */
         }
     }
 }
