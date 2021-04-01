@@ -1,9 +1,37 @@
 # hcs-url
 
-This C++17 library which is capable of parsing and resolving URLs (URIs) quickly as
+This C++17 header-only library which is capable of parsing and resolving URLs (URIs) quickly as
 defined in the RFC 3968.
 
-__TBD__
+The implementation adheres strictly to the RFC 3968 and adds some minor convenient 
+methods too. Next, it strives to be minimal and performant. That's why it makes heavy use
+of std::string_view.
+
+Small. Fast. Header-only.
+
+Example:
+
+```c++
+#include <iostream>
+#include <headcode/url/url.hpp>
+
+using namespace headcode::url;
+
+int main(int argc, char ** argv) {
+
+    URL url{"https://www.example.com/path/to/resource?foo&bar=1337"};
+    std::cout
+        << url.GetScheme()                  // Yields: "https"
+        << url.GetHost()                    // Yields: "www.example.com"
+        << url.GetPath()                    // Yields: "/path/to/resource"
+        << url.GetPathPart(2)               // Yields: "/path/to"
+        << url.GetQuery()                   // Yields: "foo&bar=1337"
+        << url.GetQueryItems()[2]           // Yields: "bar=1337"
+        << std::endl;
+    
+    return 0;
+}
+```
 
 
 ## Philosophy
@@ -43,8 +71,32 @@ SonarQube instance for hcs-benchmark: https://sonar.ddns.headcode.space/dashboar
 
 ## The API
 
-__TBD__
+There's not really much to say about the API. It's really small and centers around the URL
+class. The basic idea is, that you create an object of this class by providing a string as
+an url to parse. All is handled internally as std::string_view and indexes into the
+given string.
 
+So, basically it is this:
+
+```c++
+    auto s = "https://some.web-site.com";
+    headcode::url::URL url{s};
+    ...
+```
+
+An error can be checked with this:
+```c++
+    auto s = "https://    some.web-site.com";
+    headcode::url::URL url{s};
+    if (url.GetError() != ParseError::kNoError) {
+        std::cerr << "Meehhh... bad url." << std::endl;
+    }
+    ...
+```
+Please check the [error enum](include/headcode/url/url_core.hpp) for details. 
+
+Oh, and there are some convenient methods too, like path segements and path parts
+as well as query parameter splitting.
 
 
 ## Project layout

@@ -72,6 +72,8 @@ enum class ParseError {
  *      std::cout << url.GetPathPart(2) << std::endl;       // <-- yields "/this/is"
  * @endcode
  *
+ *      GetQueryItems()         ... all identified query sub-items with the '&' delimiter.
+ *
  * Also the url itself is not copied around but the accessor functions
  * return std::string_view objects, meaning very little to nearly no overhead.
  * However objects of this class must still exist, if you access the the data.
