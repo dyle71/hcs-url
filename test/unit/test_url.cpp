@@ -43,6 +43,11 @@ TEST(URL, regular) {
     EXPECT_TRUE(segments[1] == "is");
     EXPECT_TRUE(segments[2] == "a");
     EXPECT_TRUE(segments[3] == "path");
+    EXPECT_TRUE(url.GetPathPart(0) == "/this");
+    EXPECT_TRUE(url.GetPathPart(1) == "/this/is");
+    EXPECT_TRUE(url.GetPathPart(2) == "/this/is/a");
+    EXPECT_TRUE(url.GetPathPart(3) == "/this/is/a/path");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/this/is/a/path");
     EXPECT_TRUE(url.GetPort() == "1234");
     EXPECT_TRUE(url.GetScheme() == "url");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");
@@ -85,6 +90,9 @@ TEST(URL, regular) {
     ASSERT_TRUE(segments.size() == 2);
     EXPECT_TRUE(segments[0] == "absolute");
     EXPECT_TRUE(segments[1] == "path");
+    EXPECT_TRUE(url.GetPathPart(0) == "/absolute");
+    EXPECT_TRUE(url.GetPathPart(1) == "/absolute/path");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/absolute/path");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "blah");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -100,6 +108,9 @@ TEST(URL, regular) {
     ASSERT_TRUE(segments.size() == 2);
     EXPECT_TRUE(segments[0] == "rfc");
     EXPECT_TRUE(segments[1] == "rfc1808.txt");
+    EXPECT_TRUE(url.GetPathPart(0) == "/rfc");
+    EXPECT_TRUE(url.GetPathPart(1) == "/rfc/rfc1808.txt");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/rfc/rfc1808.txt");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ftp");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -115,6 +126,9 @@ TEST(URL, regular) {
     ASSERT_TRUE(segments.size() == 2);
     EXPECT_TRUE(segments[0] == "rfc");
     EXPECT_TRUE(segments[1] == "rfc1808.txt");
+    EXPECT_TRUE(url.GetPathPart(0) == "/rfc");
+    EXPECT_TRUE(url.GetPathPart(1) == "/rfc/rfc1808.txt");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/rfc/rfc1808.txt");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ftp");
     EXPECT_TRUE(url.GetUserInfo() == "john.doe");
@@ -168,6 +182,9 @@ TEST(URL, regular) {
     ASSERT_TRUE(segments.size() == 2);
     EXPECT_TRUE(segments[0] == "rfc");
     EXPECT_TRUE(segments[1] == "rfc2396.txt");
+    EXPECT_TRUE(url.GetPathPart(0) == "/rfc");
+    EXPECT_TRUE(url.GetPathPart(1) == "/rfc/rfc2396.txt");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/rfc/rfc2396.txt");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "http");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -182,6 +199,8 @@ TEST(URL, regular) {
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
     EXPECT_TRUE(segments[0] == "c=GB");
+    EXPECT_TRUE(url.GetPathPart(0) == "/c=GB");
+    EXPECT_TRUE(url.GetPathPart(1000) == "/c=GB");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ldap");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -196,6 +215,8 @@ TEST(URL, regular) {
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
     EXPECT_TRUE(segments[0] == "John.Doe@example.com");
+    EXPECT_TRUE(url.GetPathPart(0) == "John.Doe@example.com");
+    EXPECT_TRUE(url.GetPathPart(1000) == "John.Doe@example.com");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "mailto");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -210,6 +231,8 @@ TEST(URL, regular) {
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
     EXPECT_TRUE(segments[0] == "comp.infosystems.www.servers.unix");
+    EXPECT_TRUE(url.GetPathPart(0) == "comp.infosystems.www.servers.unix");
+    EXPECT_TRUE(url.GetPathPart(1000) == "comp.infosystems.www.servers.unix");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "news");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -224,6 +247,8 @@ TEST(URL, regular) {
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
     EXPECT_TRUE(segments[0] == "+1-816-555-1212");
+    EXPECT_TRUE(url.GetPathPart(0) == "+1-816-555-1212");
+    EXPECT_TRUE(url.GetPathPart(1000) == "+1-816-555-1212");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "tel");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -252,6 +277,8 @@ TEST(URL, regular) {
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
     EXPECT_TRUE(segments[0] == "oasis:names:specification:docbook:dtd:xml:4.1.2");
+    EXPECT_TRUE(url.GetPathPart(0) == "oasis:names:specification:docbook:dtd:xml:4.1.2");
+    EXPECT_TRUE(url.GetPathPart(1000) == "oasis:names:specification:docbook:dtd:xml:4.1.2");
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "urn");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -271,6 +298,13 @@ TEST(URL, regular) {
     EXPECT_TRUE(segments[3].empty());
     EXPECT_TRUE(segments[4] == "to%30%31");
     EXPECT_TRUE(segments[5] == "__resource");
+    EXPECT_TRUE(url.GetPathPart(0) == "/");
+    EXPECT_TRUE(url.GetPathPart(1) == "//path");
+    EXPECT_TRUE(url.GetPathPart(2) == "//path/");
+    EXPECT_TRUE(url.GetPathPart(3) == "//path//");
+    EXPECT_TRUE(url.GetPathPart(4) == "//path///to%30%31");
+    EXPECT_TRUE(url.GetPathPart(5) == "//path///to%30%31/__resource");
+    EXPECT_TRUE(url.GetPathPart(1000) == "//path///to%30%31/__resource");
     EXPECT_TRUE(url.GetPort() == "999");
     EXPECT_TRUE(url.GetScheme() == "https");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");

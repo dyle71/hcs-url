@@ -138,6 +138,21 @@ public:
     }
 
     /**
+     * @brief   Returns the path up to the n-th segment
+     * @param   n       the number of segments (maxed to the total count of all segments)
+     * @return  The path including up to the n-th segment
+     */
+    [[nodiscard]] std::string_view GetPathPart(std::size_t n) const {
+
+        if (segments_.empty()) {
+            return std::string_view{};
+        }
+        n = std::min(n, segments_.size() - 1);
+        auto total_length = segments_[n].first - path_.first + segments_[n].second;
+        return std::string_view{url_}.substr(path_.first, total_length);
+    }
+
+    /**
      * @brief   Returns the parsed port.
      * @return  The port parsed.
      */
