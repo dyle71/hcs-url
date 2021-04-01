@@ -26,7 +26,7 @@ int main(int argc, char ** argv) {
         << url.GetPath()                    // Yields: "/path/to/resource"
         << url.GetPathPart(2)               // Yields: "/path/to"
         << url.GetQuery()                   // Yields: "foo&bar=1337"
-        << url.GetQueryItems()[2]           // Yields: "bar=1337"
+        << url.GetQueryItems()[1]           // Yields: "bar=1337"
         << std::endl;
     
     return 0;
