@@ -276,8 +276,8 @@ public:
     }
 
     /**
-     * @brief   Checks if this is a Null object.
-     * @return  true, if this represents a Null object.
+     * @brief   Checks if this is a valid URL object.
+     * @return  true, if we have successfully parsed the given URL.
      */
     [[nodiscard]] bool IsValid() const {
         return error_ == ParseError::kNoError;
