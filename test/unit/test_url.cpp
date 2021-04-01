@@ -13,7 +13,7 @@
 #include <headcode/url/url.hpp>
 
 
-TEST(URL, DISABLED_empty) {
+TEST(URL, empty) {
 
     auto url1 = headcode::url::URL{};
     EXPECT_TRUE(url1.IsNull());

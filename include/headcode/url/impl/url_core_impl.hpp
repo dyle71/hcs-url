@@ -61,6 +61,7 @@ inline bool IsDigit(char c) {
  */
 inline bool IsDecOctet(std::string_view const & dec_octet) {
 
+    // a dec-octet is a string representing a value between 0 and 255.
     int value = 0;
     switch (dec_octet.size()) {
 
@@ -68,18 +69,21 @@ inline bool IsDecOctet(std::string_view const & dec_octet) {
             return false;
 
         case 1:
+            // valid: 0-9
             if (IsDigit(dec_octet[0])) {
                 value = dec_octet[0] - '0';
             }
             return value > 0;
 
         case 2:
+            // valid: 10-99
             if (IsDigit(dec_octet[0]) && IsDigit(dec_octet[1])) {
                 value = (dec_octet[0] - '0') * 10 + (dec_octet[1] - '0');
             }
             return value >= 10 && value < 100;
 
         case 3:
+            // valid: 100-255
             if (IsDigit(dec_octet[0]) && IsDigit(dec_octet[1]) && IsDigit(dec_octet[2])) {
                 value = (dec_octet[0] - '0') * 100 + (dec_octet[1] - '0') * 10 + (dec_octet[2] - '0');
             }
@@ -150,6 +154,9 @@ inline bool IsUnreserved(char c) {
  */
 inline bool IsIPv4(std::string_view const & host) {
 
+    // strategy: split the sting in 4 dec-octet and check each dec-octet afterwards
+    // exit immediately if the char ain't a digit (0-9) or dot (.).
+
     std::array<std::string_view, 4> octet;
 
     std::size_t index{0};
@@ -168,6 +175,7 @@ inline bool IsIPv4(std::string_view const & host) {
         }
     }
 
+    // capturing final dec-octet
     if ((i == host.size()) && (index != 4)) {
         octet[index++] = host.substr(last, host.size() - last);
     }
@@ -381,6 +389,9 @@ inline ParseError ParsePort(std::string_view const & authority, std::pair<std::s
         return ParseError::kNoError;
     }
 
+    // Some special treatment since a colon ':' may also appear inside
+    // the IPLiteral (IPv6 and IPvFuture) of the authority. Luckily those
+    // IPLiterals are placed inside '[' and ']'.
     auto port_part = authority;
     auto closing_ipliteral_bracket = authority.find_last_of(']');
     if (closing_ipliteral_bracket != std::string::npos) {
@@ -412,6 +423,12 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
                                                                      std::pair<std::size_t, std::size_t> & host,
                                                                      std::pair<std::size_t, std::size_t> & port) {
 
+    // Strategy: Identify the portion of the authority inside the URL.
+    // Then detect the port, if any. Afterwards split the remaining part
+    // in user info and host.
+    // If all strings have been identified, make a check on each for
+    // validity (i.e. not containing illegal characters).
+
     authority = std::make_pair(start, 0);
     userinfo = std::make_pair(start, 0);
     host = std::make_pair(start, 0);
@@ -426,6 +443,9 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
         last = authority_string.size();
     }
     authority = std::make_pair(start, last);
+
+    // To here: authority identified done.
+
     host = std::make_pair(start, last);
     last += start;
 
@@ -435,6 +455,8 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
         return {error, port.first + port.second};
     }
     auto port_part = url.substr(port.first, port.second);
+
+    // To here: port identified done.
 
     auto host_part = url.substr(start, last - start);
     if (port.second) {
@@ -454,6 +476,8 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
         userinfo.second = userinfo_end;
         userinfo_part = url.substr(userinfo.first, userinfo.second);
     }
+
+    // To here: separated user info and host part.
 
     if (!IsValidUserInfo(userinfo_part)) {
         error = ParseError::kInvalidUserInfo;
@@ -491,6 +515,9 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
         std::pair<std::size_t, std::size_t> & path,
         std::vector<std::pair<std::size_t, std::size_t>> & segments) {
 
+    // Strategy: split path by '/' and collect each segment.
+    // However, there are a number of special cases in the RFC to treat.
+
     segments.clear();
     path = std::make_pair(start, 0);
     auto path_part = url.substr(start);
@@ -510,6 +537,8 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
     if (path_part.empty()) {
         return {ParseError::kNoError, last};
     }
+
+    // To here: path seems ok so far w.r.t. RFC. --> split the path in segments.
 
     std::string_view::size_type i = path_part[0] == '/' ? 1 : 0;
     auto nibbled_path = path_part.substr(i);
@@ -577,6 +606,9 @@ inline std::tuple<ParseError, std::string::size_type> ParseScheme(std::string_vi
 
 inline void headcode::url::URL::Parse() {
 
+    // Strategy: work on the url_ field and parse in stages:
+    // scheme -> hier-part -> authority -> path -> query -> fragment.
+
     using namespace headcode::url::impl;
 
     if (url_.empty()) {
@@ -624,7 +656,7 @@ inline void headcode::url::URL::Parse() {
             case ParserState::kParsingAuthority:
                 std::tie(error_, pos) = ParseAuthority(url_sv, i, authority_, userinfo_, host_, port_);
                 if (error_ == ParseError::kNoError) {
-                    // -1 since in we ought to catch the very next char (maybe a '/' ?)
+                    // -1 since in we ought to catch the very next char (maybe a path with '/' ?)
                     i = pos - 1;
                     state = ParserState::kParsingPath;
                 }
