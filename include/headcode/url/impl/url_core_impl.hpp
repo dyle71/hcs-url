@@ -263,7 +263,7 @@ inline bool IsIPLiteral(std::string_view const & host) {
         res = host[0] == '[' && host[host.size() - 1] == ']';
         if (res) {
             auto address = host.substr(1, host.size() - 2);
-            res = IsIPv6(address) || IsIPvFuture(address);
+            res = !address.empty() && (IsIPv6(address) || IsIPvFuture(address));
         }
     }
 
@@ -307,7 +307,10 @@ inline bool IsRegName(std::string_view const & host) {
  * @return  true, if it is.
  */
 inline bool IsValidHost(std::string_view const & host) {
-    return IsIPLiteral(host) || IsIPv4(host) || IsRegName(host);
+    if (host.find_first_of('[') != std::string_view::npos) {
+        return IsIPLiteral(host);
+    }
+    return IsIPv4(host) || IsRegName(host);
 }
 
 
@@ -370,6 +373,8 @@ inline bool IsValidUserInfo(std::string_view const & userinfo) {
             i += 2;
             continue;
         }
+
+        return false;
     }
 
     return true;
@@ -583,6 +588,10 @@ inline std::tuple<ParseError, std::string::size_type> ParseScheme(std::string_vi
     auto scheme_string = url.substr(start);
     if (scheme_string.empty()) {
         return {ParseError::kEmptyScheme, url.size()};
+    }
+
+    if (!IsAlpha(scheme_string[0])) {
+        return {ParseError::kInvalidSchemeChar, url.size()};
     }
 
     auto pos = start;

@@ -173,8 +173,8 @@ public:
      * @brief   Checks if this is a Null object.
      * @return  true, if this represents a Null object.
      */
-    [[nodiscard]] bool IsNull() const {
-        return url_.empty();
+    [[nodiscard]] bool IsValid() const {
+        return error_ == ParseError::kNoError;
     }
 
 private:
