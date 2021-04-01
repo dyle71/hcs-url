@@ -580,3 +580,16 @@ TEST(URL, bad_path) {
     EXPECT_FALSE(url.IsValid());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPath);
 }
+
+
+TEST(URL, move_or_url) {
+
+    headcode::url::URL url;
+    {
+        headcode::url::URL temp_url{"temp://"};
+        url = headcode::url::URL{temp_url};
+    }
+
+    EXPECT_TRUE(url.GetScheme() == "temp");
+    EXPECT_TRUE(url.IsValid());
+}
