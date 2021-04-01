@@ -220,42 +220,56 @@ TEST(URL, regular) {
 
 TEST(URL, bad_schemes) {
 
-    std::list<std::string> bad_scheme_urls{
-        "1:", "_:", "+:", ".:", "h*:", "???:", "http#", "http#:", "  ftp:", "ssh :"
-    };
+    std::list<std::string> bad_scheme_urls{"",           // Empty.
+                                           "foo",        // Missing colon ':'.
+                                           "1:",         // Illegal characters at start ...
+                                           "_:",
+                                           "+:",
+                                           ".:",
+                                           "???:",        // Illegal characters within ...
+                                           "h*:",
+                                           "http#",
+                                           "http#:",
+                                           "  ftp:",
+                                           "ssh :"};
 
     for (auto const & bad_url : bad_scheme_urls) {
         auto url = headcode::url::URL(bad_url);
         EXPECT_TRUE(url.IsNull());
+        EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidScheme);
     }
 }
 
 
 TEST(URL, bad_userinfo) {
 
-    auto raw = "http://this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
-    auto url = headcode::url::URL{raw};
-    EXPECT_FALSE(url.IsNull());
+    // Illegal characters in user info.
 
-    raw = "http://user @this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
-    url = headcode::url::URL{raw};
+    auto raw = "http://user @this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
+    auto url = headcode::url::URL{raw};
     EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidUserInfo);
 
     raw = "http://user%@this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
     url = headcode::url::URL{raw};
     EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidUserInfo);
 
     raw = "http://user%0x@this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
     url = headcode::url::URL{raw};
     EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidUserInfo);
 
     raw = "http://user$@this.is.an.address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
     url = headcode::url::URL{raw};
     EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidUserInfo);
 }
 
 
 TEST(URL, bad_host) {
+
+    // Illegal characters in host.
 
     auto raw = "http://this.is.an.address /";
     auto url = headcode::url::URL{raw};
@@ -291,4 +305,38 @@ TEST(URL, bad_host) {
     url = headcode::url::URL{raw};
     EXPECT_TRUE(url.IsNull());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidHost);
+}
+
+
+TEST(URL, bad_port) {
+
+    // Illegal characters in port.
+
+    auto raw = "http://this.is.an.address: 12";
+    auto url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
+
+    raw = "http://127.0.0.1:123x";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
+
+    raw = "http://127.0.0.1:*";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
+
+    raw = "http://127.0.0.1:?%$";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
+
+    raw = "http://127.0.0.1:port";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsNull());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
+
+    // Hence, the RFC approves port number bigger than 65535.
+    // Therefore "url://host:1234567890" constitutes a valid port number, according to the RFC.
 }
