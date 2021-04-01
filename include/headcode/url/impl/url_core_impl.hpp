@@ -550,7 +550,7 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
     do {
 
         auto segment_part = nibbled_path.substr(0, nibbled_path.find_first_of('/'));
-        segments.emplace_back(i, segment_part.size());
+        segments.emplace_back(start + i, segment_part.size());
 
         if (!IsValidPathSegment(segment_part)) {
             return {ParseError::kInvalidPath, path.first + path.second};
@@ -648,6 +648,7 @@ inline void headcode::url::URL::Parse() {
                 authority_ = std::make_pair(i, 0);
                 host_ = std::make_pair(i, 0);
                 path_ = std::make_pair(i, 0);
+                segments_.clear();
                 port_ = std::make_pair(i, 0);
                 userinfo_ = std::make_pair(i, 0);
                 query_ = std::make_pair(i, 0);

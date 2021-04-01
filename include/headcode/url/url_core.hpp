@@ -154,6 +154,18 @@ public:
     }
 
     /**
+     * @brief   Returns the segments of the path as vector.
+     * @return  The parsed segments of the path.
+     */
+    [[nodiscard]] std::vector<std::string_view> GetSegments() const {
+        std::vector<std::string_view> segments;
+        for (auto const & p: segments_) {
+            segments.emplace_back(std::string_view{url_}.substr(p.first, p.second));
+        }
+        return segments;
+    }
+
+    /**
      * @brief   Returns the internal used URL string.
      * @return  The string used to create this object instance.
      */
