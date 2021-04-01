@@ -6,8 +6,13 @@
  * Oliver Maurhart <info@headcode.space>, https://www.headcode.space
  */
 
-#ifndef HEADCODE_SPACE_URL_URL_CORE_BITS_HPP
-#define HEADCODE_SPACE_URL_URL_CORE_BITS_HPP
+#ifndef HEADCODE_SPACE_URL_URL_CORE_IMPL_HPP
+#define HEADCODE_SPACE_URL_URL_CORE_IMPL_HPP
+
+
+#ifndef HEADCODE_SPACE_URL_URL_CORE_HPP
+#error "Do not include this file directly."
+#endif
 
 
 #include <tuple>
@@ -101,16 +106,6 @@ inline bool IsDecOctet(std::string_view const & dec_octet) {
  */
 inline bool IsHexDigit(char c) {
     return IsDigit(c) || ((c >= 'A') && (c <= 'F')) || ((c >= 'a') && (c <= 'f'));
-}
-
-
-/**
- * @brief   Checks if the given string represents a h16 string.
- * @param   h16         the value to check.
- * @return  true, if it is.
- */
-inline bool IsH16(std::string_view const & h16) {
-    return (h16.size() <= 4) && std::all_of(h16.cbegin(), h16.cend(), [](auto c) { return IsHexDigit(c); });
 }
 
 
