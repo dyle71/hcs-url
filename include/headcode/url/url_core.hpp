@@ -10,14 +10,31 @@
 #define HEADCODE_SPACE_URL_URL_CORE_HPP
 
 #include <string>
-#include <tuple>
+#include <utility>
+#include <vector>
 #include <utility>
 
 
 /**
- * @brief   The headcode url namespace
+ * @brief   The headcode url namespace.
  */
 namespace headcode::url {
+
+
+/**
+ * @brief Different parsing errors we ecounter.
+ */
+enum class ParseError {
+    kNoError = 0,              //!< @brief No error occurred, all good.
+    kURLEmpty,                 //!< @brief The passed URL to parse has been empty.
+    kInvalidSchemeChar,        //!< @brief Invalid character encountered in scheme parsing.
+    kInvalidScheme,            //!< @brief Scheme is invalid.
+    kEmptyScheme,              //!< @brief Empty scheme parsing.
+    kInvalidUserInfo,          //!< @brief User info in URL is invalid.
+    kInvalidHost,              //!< @brief Host part in URL is invalid.
+    kInvalidPort,              //!< @brief Port part in URL is invalid.
+    kInvalidPath               //!< @brief Path part in URL is invalid.
+};
 
 
 /**
@@ -39,50 +56,101 @@ class URL {
 
     std::string url_;        //!< @brief The input URL given to be parsed.
 
-    /**
-     * @brief   The result of a parsed url.
-     */
-    struct ParsedUrl {
+    ParseError error_{ParseError::kURLEmpty};        //!< @brief The error encountered during parsing.
 
-        std::string_view scheme;           //!< @brief The parsed scheme of the URL.
-        std::string_view authority;        //!< @brief The parsed authority of the URL.
-        std::string_view path;             //!< @brief The parsed path of the URL.
-
-    } parsed_;
+    std::pair<std::size_t, std::size_t> authority_;        //!< @brief The parsed authority of the URL.
+    std::pair<std::size_t, std::size_t> host_;             //!< @brief The parsed host of the URL.
+    std::pair<std::size_t, std::size_t> path_;             //!< @brief The parsed path of the URL.
+    std::vector<std::pair<std::size_t, std::size_t>>
+            segments_;                                    //!< @brief The parsed segments of the path in the URL.
+    std::pair<std::size_t, std::size_t> port_;            //!< @brief The parsed port of the URL.
+    std::pair<std::size_t, std::size_t> scheme_;          //!< @brief The parsed scheme of the URL.
+    std::pair<std::size_t, std::size_t> userinfo_;        //!< @brief The parsed userinfo of the URL.
+    std::pair<std::size_t, std::size_t> query_;           //!< @brief The parsed query of the URL.
+    std::pair<std::size_t, std::size_t> fragment_;        //!< @brief The parsed fragment of the URL.
 
 public:
     /**
      * @brief   Ctor.
      * @param   url         the url to parse.
      */
-    explicit URL(std::string url = std::string{}) {
-        if (!url.empty()) {
-            Parse(std::move(url));
-        }
+    explicit URL(std::string url = std::string{}) : url_{std::move(url)} {
+        Parse();
     }
+
+    /**
+     * @brief   Copy Ctor.
+     */
+    URL(URL const &) = default;
+
+    /**
+     * @brief   Move Ctor.
+     */
+    URL(URL &&) noexcept = default;
+
+    /**
+     * @brief   Dtor.
+     */
+    ~URL() = default;
+
+    /**
+     * @brief   Copy assigment.
+     * @return  (*this)
+     */
+    URL & operator=(URL const &) = default;
+
+    /**
+     * @brief   Move assigment.
+     * @return  (*this)
+     */
+    URL & operator=(URL &&) noexcept = default;
 
     /**
      * @brief   Returns the parsed authority.
      * @return  The authority parsed.
      */
-    [[nodiscard]] std::string_view const & GetAuthority() const {
-        return parsed_.authority;
+    [[nodiscard]] std::string_view GetAuthority() const {
+        return std::string_view{url_}.substr(authority_.first, authority_.second);
+    }
+
+    /**
+     * @brief   The error after parsing.
+     * @return  The error value encountered.
+     */
+    [[nodiscard]] ParseError GetError() const {
+        return error_;
+    }
+
+    /**
+     * @brief   Returns the parsed host.
+     * @return  The host parsed.
+     */
+    [[nodiscard]] std::string_view GetHost() const {
+        return std::string_view{url_}.substr(host_.first, host_.second);
     }
 
     /**
      * @brief   Returns the parsed path.
      * @return  The path parsed.
      */
-    [[nodiscard]] std::string_view const & GetPath() const {
-        return parsed_.path;
+    [[nodiscard]] std::string_view GetPath() const {
+        return std::string_view{url_}.substr(path_.first, path_.second);
+    }
+
+    /**
+     * @brief   Returns the parsed port.
+     * @return  The port parsed.
+     */
+    [[nodiscard]] std::string_view GetPort() const {
+        return std::string_view{url_}.substr(port_.first, port_.second);
     }
 
     /**
      * @brief   Returns the parsed scheme.
      * @return  The scheme parsed.
      */
-    [[nodiscard]] std::string_view const & GetScheme() const {
-        return parsed_.scheme;
+    [[nodiscard]] std::string_view GetScheme() const {
+        return std::string_view{url_}.substr(scheme_.first, scheme_.second);
     }
 
     /**
@@ -91,6 +159,14 @@ public:
      */
     [[nodiscard]] std::string const & GetURL() const {
         return url_;
+    }
+
+    /**
+     * @brief   Returns the parsed userinfo.
+     * @return  The userinfo parsed.
+     */
+    [[nodiscard]] std::string_view GetUserInfo() const {
+        return std::string_view{url_}.substr(userinfo_.first, userinfo_.second);
     }
 
     /**
@@ -103,68 +179,9 @@ public:
 
 private:
     /**
-     * @brief   Checks if the given character belongs to the ALPHA characters.
-     * @param   c       the character to test.
-     * @return  true, if the characters belongs to ALPHA as defined in the RFC.
-     */
-    [[nodiscard]] bool IsAlpha(char c) const;
-
-    /**
-     * @brief   Checks if the given character belongs to the DIGIT characters.
-     * @param   c       the character to test.
-     * @return  true, if the characters belongs to DIGIT as defined in the RFC.
-     */
-    [[nodiscard]] bool IsDigit(char c) const;
-
-    /**
-     * @brief   Checks if the given character is a valid path character
-     * @param   c       the character to test.
-     * @return  true, if the characters can be used in a path segment.
-     */
-    [[nodiscard]] bool IsPathCharacter(char c) const;
-
-    /**
-     * @brief   Checks if the given character is a valid character for a scheme
-     * @param   c       the character to test.
-     * @return  true, if the character can be used in a scheme string.
-     */
-    [[nodiscard]] bool IsSchemeChar(char c) const;
-
-    /**
-     * @brief   Checks if the given character is in the set of unreserved characters
-     * @param   c       the character to test.
-     * @return  true, if the characters is part of the unreserved set.
-     */
-    [[nodiscard]] bool IsUnreserved(char c) const;
-
-    /**
      * @brief   Parses the given url.
-     * If parsing succeeds, then the given url will be copied inside.
-     * @param   url     the url to parse.
      */
-    void Parse(std::string const & url);
-
-    /**
-     * @param   Parses the scheme part of the inner url.
-     * @param   scheme          the scheme to parse.
-     * @return  true if the scheme has been set.
-     */
-    bool ParseScheme(std::string_view const & scheme) const;
-
-    /**
-     * @brief   Split the url rest (all without the "scheme:" part) into hier_part, query and fragment
-     * @param   url_rest            the url without the "scheme:"
-     * @return  the hier_part, the query, and the fragment
-     */
-    [[nodiscard]] std::tuple<std::string_view, std::string_view, std::string_view> Split(
-            std::string_view url_rest) const;
-
-    /**
-     * @brief   Split the hier-part into authority and path
-     * @param   hier_path           the hier-path part of the URL
-     * @return  parsing ok, the authority and the path
-     */
-    [[nodiscard]] std::tuple<bool, std::string_view, std::string_view> SplitHierPart(std::string_view hier_part) const;
+    void Parse();
 };
 
 
