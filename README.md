@@ -93,9 +93,9 @@ An error can be checked with this:
     }
     ...
 ```
-Please check the [error enum](include/headcode/url/url_core.hpp) for details. 
+Please check the [URL class](include/headcode/url/url_core.hpp) for details. 
 
-Oh, and there are some convenient methods too, like path segements and path parts
+Oh, and there are some convenient methods too, like path segments and path parts
 as well as query parameter splitting.
 
 
