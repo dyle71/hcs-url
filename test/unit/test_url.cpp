@@ -13,6 +13,22 @@
 #include <headcode/url/url.hpp>
 
 
+TEST(url, normalize) {
+
+    auto raw = "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
+    auto url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_TRUE(url.GetURL() == "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment");
+
+    raw = "eXamPLE://us%65r:pa%20wor%7f@address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
+    url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.IsValid());
+    auto u = url.GetURL();
+    EXPECT_TRUE(url.GetURL() ==
+                "example://user:pa%20wor%7F@address:1234/this/is/a/path?with&a&query=param#and_a_fragment");
+}
+
+
 TEST(URL, empty) {
 
     auto url1 = headcode::url::URL{};

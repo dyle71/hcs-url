@@ -291,6 +291,12 @@ public:
         return error_ == ParseError::kNoError;
     }
 
+    /**
+     * @brief   Returns a normalized version of the given URL.
+     * @return  A new URL object with the very same url, but normalized.
+     */
+    [[nodiscard]] URL Normalize() const;
+
 private:
     /**
      * @brief   Parses the given url.

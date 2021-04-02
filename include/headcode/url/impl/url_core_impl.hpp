@@ -15,6 +15,8 @@
 #endif
 
 
+#include <algorithm>
+#include <sstream>
 #include <tuple>
 
 
@@ -420,6 +422,101 @@ inline bool IsValidUserInfo(std::string_view const & userinfo) {
 
 
 /**
+ * @brief   Convert ASCII range A..Z to lower case.
+ * @param   c       the character to convert.
+ * @return  lower case c (or c if c not in range).
+ */
+inline char ToLower(char c) {
+    if ((c >= 'A') && (c < 'Z')) {
+        c += 0x20;
+    }
+    return c;
+}
+
+
+/**
+ * @brief   Convert ASCII range a..z to upper case.
+ * @param   c       the character to convert.
+ * @return  upper case c (or c if c not in range).
+ */
+inline char ToUpper(char c) {
+    if ((c >= 'a') && (c < 'z')) {
+        c -= 0x20;
+    }
+    return c;
+}
+
+
+/**
+ * @brief   Normalizes a percent encoded part of an URL.
+ * @param   percent_encoded     an percent encoded particle.
+ * @return  A string holding the percent encoded value (or upper case percent encoded).
+ */
+inline std::string NormalizePercentEncoded(std::string_view const & percent_encoded) {
+
+    if ((percent_encoded.size() < 3) || (percent_encoded[0] != '%')) {
+        return std::string{};
+    }
+
+    char v1 = percent_encoded[1];
+    char v2 = percent_encoded[2];
+    if (!IsHexDigit(v1) && !IsHexDigit(v2)) {
+        return std::string{};
+    }
+    v1 = ToUpper(v1);
+    v2 = ToUpper(v2);
+
+    std::stringstream ss;
+    ss << "%" << v1 << v2;
+    char value = (IsDigit(v1) ? v1 - '0' : (v1 - 'A' + 0x0a)) << 4;
+    value |= IsDigit(v2) ? v2 - '0' : (v2 - 'A' + 0x0a);
+
+    if (IsUnreserved(value)) {
+        return std::string{value};
+    }
+
+    return ss.str();
+}
+
+
+/**
+ * @brief   Normalizes the authority part of an URL.
+ * @param   authority       the authority to normalize.
+ * @return  A string holding the normalized authority.
+ */
+inline std::string NormalizeAuthority(std::string_view const & authority) {
+
+    std::stringstream ss;
+
+    for (std::size_t i = 0; i < authority.size(); ++i) {
+
+        // pct-encoded
+        if (authority[i] == '%' && i < (authority.size() - 2) && IsHexDigit(authority[i + 1]) && IsHexDigit(authority[i + 2])) {
+            ss << NormalizePercentEncoded(authority.substr(i, 3));
+            i += 2;
+            continue;
+        }
+
+        ss << ToLower(authority[i]);
+    }
+
+    return ss.str();
+}
+
+
+/**
+ * @brief   Normalizes the scheme part of an URL
+ * @param   scheme          the scheme to normalize.
+ * @return  A string holding the normalized scheme.
+ */
+inline std::string NormalizeScheme(std::string_view const & scheme) {
+    std::string res{scheme};
+    std::transform(res.begin(), res.end(), res.begin(), [](char c) { return ToLower(c); });
+    return res;
+}
+
+
+/**
  * @brief   Parse the port part inside an authority string.
  * @param   authority       the authority to parse.
  * @param   port            the start and length of the port value found in the authority.
@@ -712,6 +809,25 @@ inline std::tuple<ParseError, std::string::size_type> ParseScheme(std::string_vi
 }
 
 
+}
+
+
+inline headcode::url::URL headcode::url::URL::Normalize() const {
+
+    if (url_.empty()) {
+        return URL{};
+    }
+
+    using namespace headcode::url::impl;
+
+    std::stringstream ss;
+
+    ss << NormalizeScheme(GetScheme()) << ":";
+    if (!GetAuthority().empty()) {
+        ss << "//" << NormalizeAuthority(GetAuthority());
+    }
+
+    return URL{ss.str()};
 }
 
 
