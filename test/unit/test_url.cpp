@@ -426,7 +426,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(query_items.empty());
     EXPECT_TRUE(url.GetFragment().empty());
 
-    raw = "https://user:password@some.host:999//path///to%30%31/__resource#token";
+    raw = "https://user:password@some.host:999//path///to%30%31/__resource#token/with?some;special/valid/chars";
     url = headcode::url::URL{raw};
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
@@ -455,7 +455,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
-    EXPECT_TRUE(url.GetFragment() == "token");
+    EXPECT_TRUE(url.GetFragment() == "token/with?some;special/valid/chars");
 }
 
 

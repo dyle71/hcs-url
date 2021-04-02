@@ -3,9 +3,13 @@
 This C++17 header-only library which is capable of parsing and resolving URLs (URIs) quickly as
 defined in the RFC 3968.
 
-The implementation adheres strictly to the RFC 3968 and adds some minor convenient 
-methods too. Next, it strives to be minimal and performant. That's why it makes heavy use
-of std::string_view.
+The implementation adheres strictly to the RFC 3968 but without (not yet; maybe in future versions):
+* syntax-based normalization
+* case normalization
+* percent-encoding normalization
+* path segment normalization
+and adds some minor convenient methods too. Next, it strives to be minimal and performant. 
+That's why it makes heavy use of std::string_view.
 
 Small. Fast. Header-only.
 
