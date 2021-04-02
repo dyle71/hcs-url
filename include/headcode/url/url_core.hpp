@@ -276,6 +276,14 @@ public:
     }
 
     /**
+     * @brief   Checks if the path is absolute.
+     * @return  true, if the path is absolute.
+     */
+    [[nodiscard]] bool IsPathAbsolute() const {
+        return !url_.empty() && (path_.second > 0) && (url_[path_.first] == '/');
+    }
+
+    /**
      * @brief   Checks if this is a valid URL object.
      * @return  true, if we have successfully parsed the given URL.
      */

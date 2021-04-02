@@ -633,9 +633,10 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
 
 /**
  * @brief   Parse the query in the URL beginning at start.
- * @param   url         the url to parse, beginning at the scheme.
- * @param   start       the start index of the query in url.
- * @param   query       the identified query start and length in url.
+ * @param   url             the url to parse, beginning at the scheme.
+ * @param   start           the start index of the query in url.
+ * @param   query           the identified query start and length in url.
+ * @param   query_items     the identified separated query items in url.
  * @return  ParseError value and end position of parsing.
  */
 inline std::tuple<ParseError, std::string::size_type> ParseQuery(
@@ -709,6 +710,8 @@ inline std::tuple<ParseError, std::string::size_type> ParseScheme(std::string_vi
 
     return {ParseError::kInvalidScheme, pos};
 }
+
+
 }
 
 
