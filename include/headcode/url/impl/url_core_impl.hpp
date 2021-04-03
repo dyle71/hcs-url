@@ -511,8 +511,8 @@ inline std::string NormalizeAuthority(std::string_view const & authority) {
  * @return  A string holding the normalized fragment.
  */
 inline std::string NormalizeFragment(std::string_view const & fragment) {
-    std::string res{fragment};
-    return res;
+    // fragments remain unchanged
+    return std::string{fragment};
 }
 
 
@@ -567,8 +567,8 @@ inline std::string NormalizePath(std::vector<std::string_view> const & segments)
  * @return  A string holding the normalized query.
  */
 inline std::string NormalizeQuery(std::string_view const & query) {
-    std::string res{query};
-    return res;
+    // queries should remain untouched
+    return std::string{query};
 }
 
 
@@ -968,7 +968,6 @@ inline void headcode::url::URL::Parse() {
             case ParserState::kParsingAuthority:
                 std::tie(error_, pos) = ParseAuthority(url_sv, i, authority_, userinfo_, host_, port_);
                 if (error_ == ParseError::kNoError) {
-                    // -1 since in we ought to catch the very next char (maybe a path with '/' ?)
                     i = pos - 1;
                     state = ParserState::kParsingPath;
                 }
