@@ -21,9 +21,7 @@ namespace headcode::url {
 /**
  * @brief   An IP address on the web.
  */
-class IPAddress {
-
-};
+class IPAddress {};
 
 
 }

@@ -13,22 +13,6 @@
 #include <headcode/url/url.hpp>
 
 
-TEST(url, normalize) {
-
-    auto raw = "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
-    auto url = headcode::url::URL{raw}.Normalize();
-    EXPECT_TRUE(url.IsValid());
-    EXPECT_TRUE(url.GetURL() == "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment");
-
-    raw = "eXamPLE://us%65r:pa%20wor%7f@address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
-    url = headcode::url::URL{raw}.Normalize();
-    EXPECT_TRUE(url.IsValid());
-    auto u = url.GetURL();
-    EXPECT_TRUE(url.GetURL() ==
-                "example://user:pa%20wor%7F@address:1234/this/is/a/path?with&a&query=param#and_a_fragment");
-}
-
-
 TEST(URL, empty) {
 
     auto url1 = headcode::url::URL{};
@@ -68,6 +52,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort() == "1234");
     EXPECT_TRUE(url.GetScheme() == "url");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");
+    EXPECT_TRUE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery() == "with&a&query=param");
     auto query_items = url.GetQueryItems();
     ASSERT_TRUE(query_items.size() == 3);
@@ -100,6 +85,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort() == "1234");
     EXPECT_TRUE(url.GetScheme() == "url");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -129,6 +115,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort() == "1234");
     EXPECT_TRUE(url.GetScheme() == "url");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");
+    EXPECT_TRUE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery() == "with&a&query=param");
     query_items = url.GetQueryItems();
     ASSERT_TRUE(query_items.size() == 3);
@@ -150,6 +137,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "blah");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -169,6 +157,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "blah");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -192,6 +181,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "blah");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -215,6 +205,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ftp");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -238,6 +229,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ftp");
     EXPECT_TRUE(url.GetUserInfo() == "john.doe");
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -256,6 +248,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "https");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -274,6 +267,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "https");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -291,6 +285,7 @@ TEST(URL, regular) {
     ASSERT_TRUE(segments.empty());
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "git+ssh");
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -314,6 +309,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "http");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -335,6 +331,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "ldap");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_TRUE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery() == "objectClass?one");
     query_items = url.GetQueryItems();
     ASSERT_TRUE(query_items.size() == 1);
@@ -357,6 +354,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "mailto");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     EXPECT_TRUE(url.GetFragment().empty());
 
@@ -376,6 +374,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "news");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -397,6 +396,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "tel");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -416,6 +416,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort() == "80");
     EXPECT_TRUE(url.GetScheme() == "telnet");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -437,6 +438,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "urn");
     EXPECT_TRUE(url.GetUserInfo().empty());
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
@@ -468,10 +470,59 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.GetPort() == "999");
     EXPECT_TRUE(url.GetScheme() == "https");
     EXPECT_TRUE(url.GetUserInfo() == "user:password");
+    EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
     EXPECT_TRUE(url.GetFragment() == "token/with?some;special/valid/chars");
+
+    raw = "https://example.com/";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+
+    raw = "https://example.com/?";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsPathAbsolute());
+    EXPECT_TRUE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "https://example.com?";
+    url = headcode::url::URL{raw};
+    EXPECT_FALSE(url.IsPathAbsolute());
+    EXPECT_TRUE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "https://example.com/#";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_TRUE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "https://example.com#";
+    url = headcode::url::URL{raw};
+    EXPECT_FALSE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_TRUE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
 }
 
 
@@ -582,7 +633,7 @@ TEST(URL, bad_port) {
     EXPECT_FALSE(url.IsValid());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
 
-    raw = "http://127.0.0.1:?%$";
+    raw = "http://127.0.0.1:_?%$";
     url = headcode::url::URL{raw};
     EXPECT_FALSE(url.IsValid());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidPort);
@@ -627,4 +678,23 @@ TEST(URL, move_or_url) {
 
     EXPECT_TRUE(url.GetScheme() == "temp");
     EXPECT_TRUE(url.IsValid());
+}
+
+
+TEST(url, normalize) {
+
+    auto raw = "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment";
+    auto url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_TRUE(url.GetURL() == "url://user:password@address:1234/this/is/a/path?with&a&query=param#and_a_fragment");
+
+    raw = "eXamPLE://us%65r:pa%20wor%7f@address:1234/this/./is/../../a/./path?with&a&query=param#and_a_fragment";
+    url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_TRUE(url.GetURL() == "example://user:pa%20wor%7F@address:1234/a/path?with&a&query=param#and_a_fragment");
+
+    raw = "eXamPLE://example.com/this/./is/../../../../../a/./path/./.?with&a&qu%3fery=param#an%61d_a_fragment";
+    url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_TRUE(url.GetURL() == "example://example.com/a/path?with&a&qu%3fery=param#an%61d_a_fragment");
 }

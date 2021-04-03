@@ -120,6 +120,9 @@ class URL {
             query_items_;                                 //!< @brief The parsed query items of the query in the URL.
     std::pair<std::size_t, std::size_t> fragment_;        //!< @brief The parsed fragment of the URL.
 
+    bool query_present_{false};           //!< @brief Flag stating that a query is present (though maybe empty)
+    bool fragment_present_{false};        //!< @brief Flag stating that a fragment is present (though maybe empty)
+
 public:
     /**
      * @brief   Ctor.
@@ -276,11 +279,27 @@ public:
     }
 
     /**
+     * @brief   States if this url has a fragment (at least '#' char; also if the fragment is empty)
+     * @return  True, if there is a '#'.
+     */
+    [[nodiscard]] bool IsFragmentPresent() const {
+        return fragment_present_;
+    }
+
+    /**
      * @brief   Checks if the path is absolute.
      * @return  true, if the path is absolute.
      */
     [[nodiscard]] bool IsPathAbsolute() const {
         return !url_.empty() && (path_.second > 0) && (url_[path_.first] == '/');
+    }
+
+    /**
+     * @brief   States if this url has a query (at least '?' char; also if the query is empty)
+     * @return  True, if there is a '?'.
+     */
+    [[nodiscard]] bool IsQueryPresent() const {
+        return query_present_;
     }
 
     /**

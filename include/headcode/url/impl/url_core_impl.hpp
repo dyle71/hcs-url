@@ -491,7 +491,8 @@ inline std::string NormalizeAuthority(std::string_view const & authority) {
     for (std::size_t i = 0; i < authority.size(); ++i) {
 
         // pct-encoded
-        if (authority[i] == '%' && i < (authority.size() - 2) && IsHexDigit(authority[i + 1]) && IsHexDigit(authority[i + 2])) {
+        if (authority[i] == '%' && i < (authority.size() - 2) && IsHexDigit(authority[i + 1]) &&
+            IsHexDigit(authority[i + 2])) {
             ss << NormalizePercentEncoded(authority.substr(i, 3));
             i += 2;
             continue;
@@ -501,6 +502,73 @@ inline std::string NormalizeAuthority(std::string_view const & authority) {
     }
 
     return ss.str();
+}
+
+
+/**
+ * @brief   Normalizes the fragment part of an URL
+ * @param   fragment        the fragment to normalize.
+ * @return  A string holding the normalized fragment.
+ */
+inline std::string NormalizeFragment(std::string_view const & fragment) {
+    std::string res{fragment};
+    return res;
+}
+
+
+/**
+ * @brief   Normalizes the path part of an URL
+ * @param   segments            the path to normalize.
+ * @return  A string holding the normalized path.
+ */
+inline std::string NormalizePath(std::vector<std::string_view> const & segments) {
+
+    std::vector<std::string_view> path;
+
+    std::size_t pos = 0;
+    for (auto const & segment : segments) {
+
+        if (segment == "..") {
+            if (pos > 0) {
+                --pos;
+            }
+            continue;
+        }
+
+        if (segment == ".") {
+            continue;
+        }
+
+        if (pos < path.size()) {
+            path[pos] = segment;
+        } else {
+            path.emplace_back(segment);
+        }
+        ++pos;
+    }
+    path.resize(pos);
+
+    std::stringstream ss;
+    if (!path.empty()) {
+        auto iter = path.cbegin();
+        ss << *iter++;
+        for (; iter != path.cend(); ++iter) {
+            ss << '/' << *iter;
+        }
+    }
+
+    return ss.str();
+}
+
+
+/**
+ * @brief   Normalizes the query part of an URL
+ * @param   query           the query to normalize.
+ * @return  A string holding the normalized query.
+ */
+inline std::string NormalizeQuery(std::string_view const & query) {
+    std::string res{query};
+    return res;
 }
 
 
@@ -578,7 +646,7 @@ inline std::tuple<ParseError, std::string::size_type> ParseAuthority(std::string
     }
 
     auto authority_string = url.substr(start);
-    std::string::size_type last = authority_string.find_first_of('/');
+    std::string::size_type last = authority_string.find_first_of("/?#");
     if (last == std::string_view::npos) {
         last = authority_string.size();
     }
@@ -827,6 +895,21 @@ inline headcode::url::URL headcode::url::URL::Normalize() const {
         ss << "//" << NormalizeAuthority(GetAuthority());
     }
 
+    if (IsPathAbsolute()) {
+        ss << '/';
+    }
+    ss << NormalizePath(GetSegments());
+
+    if (IsQueryPresent()) {
+        ss << '?';
+    }
+    ss << NormalizeQuery(GetQuery());
+
+    if (IsFragmentPresent()) {
+        ss << '#';
+    }
+    ss << NormalizeFragment(GetFragment());
+
     return URL{ss.str()};
 }
 
@@ -901,8 +984,10 @@ inline void headcode::url::URL::Parse() {
 
             case ParserState::kParsingQueryOrFragment:
                 if (url_[i] == '?') {
+                    query_present_ = true;
                     state = ParserState::kParsingQuery;
                 } else if (url_[i] == '#') {
+                    fragment_present_ = true;
                     state = ParserState::kParsingFragment;
                 }
                 break;
@@ -911,6 +996,9 @@ inline void headcode::url::URL::Parse() {
                 std::tie(error_, pos) = ParseQuery(url_sv, i, query_, query_items_);
                 if (error_ == ParseError::kNoError) {
                     i = pos;
+                    if ((i < url_.size()) && (url_[i] == '#')) {
+                        fragment_present_ = true;
+                    }
                     state = ParserState::kParsingFragment;
                 }
                 break;
