@@ -97,7 +97,7 @@ General methods                                       | Description
 ----------------------------------------------------- | ----------------------------------
 `std::string const & GetURL() const`                  | Gets the URL passed.
 `ParseError GetError() const`                         | Returns the parsing error.
-`bool IsValid() const`                                | Checks is the URL passed in is valid.
+`bool IsValid() const`                                | Checks if the URL passed in is valid.
 
 Accessor methods                                      | Description
 ----------------------------------------------------- | ----------------------------------
@@ -108,7 +108,7 @@ Accessor methods                                      | Description
 `std::string_view GetPathPart(std::size_t n) const`   | Returns the path up to the n-th segment of the URL.
 `std::string_view GetPort() const`                    | Returns the port of the URL.
 `std::string_view GetQuery() const`                   | Returns the full query of the URL.
-`std::vector<std::string_view> GetQueryItems() const` | Returns the collection parsed query items of the URL.
+`std::vector<std::string_view> GetQueryItems() const` | Returns the collection of parsed query items of the URL.
 `std::string_view GetScheme() const`                  | Returns the scheme of the URL.
 `std::vector<std::string_view> GetSegments() const`   | Returns the collection of parsed path segments.
 `std::string_view GetUserInfo() const`                | Returns the user info within the authority.
