@@ -3,14 +3,6 @@
 This C++17 header-only library which is capable of parsing and resolving URLs (URIs) quickly as
 defined in the RFC 3968.
 
-The implementation adheres strictly to the RFC 3968 but without (not yet; maybe in future versions):
-* syntax-based normalization
-* case normalization
-* percent-encoding normalization
-* path segment normalization
-and adds some minor convenient methods too. Next, it strives to be minimal and performant. 
-That's why it makes heavy use of std::string_view.
-
 Small. Fast. Header-only.
 
 Example:
@@ -97,10 +89,39 @@ An error can be checked with this:
     }
     ...
 ```
-Please check the [URL class](include/headcode/url/url_core.hpp) for details. 
 
 Oh, and there are some convenient methods too, like path segments and path parts
 as well as query parameter splitting.
+
+General methods                                       | Description
+----------------------------------------------------- | ----------------------------------
+`std::string const & GetURL() const`                  | Gets the URL passed.
+`ParseError GetError() const`                         | Returns the parsing error.
+`bool IsValid() const`                                | Checks is the URL passed in is valid.
+
+Accessor methods                                      | Description
+----------------------------------------------------- | ----------------------------------
+`std::string_view GetAuthority() const`               | Returns the authority of the URL.
+`std::string_view GetFragment() const`                | Returns the fragment of the URL.
+`std::string_view GetHost() const`                    | Returns the host of the URL.
+`std::string_view GetPath() const`                    | Returns the full path of the URL.
+`std::string_view GetPathPart(std::size_t n) const`   | Returns the path up to the n-th segment of the URL.
+`std::string_view GetPort() const`                    | Returns the port of the URL.
+`std::string_view GetQuery() const`                   | Returns the full query of the URL.
+`std::vector<std::string_view> GetQueryItems() const` | Returns the collection parsed query items of the URL.
+`std::string_view GetScheme() const`                  | Returns the scheme of the URL.
+`std::vector<std::string_view> GetSegments() const`   | Returns the collection of parsed path segments.
+`std::string_view GetUserInfo() const`                | Returns the user info within the authority.
+
+Observer methods                                      | Description
+----------------------------------------------------- | ----------------------------------
+`bool IsFragmentPresent() const`                      | Checks if there is a fragment part.
+`bool IsPathAbsolute() const`                         | Returns `true` if the path is absolute.
+`bool IsQueryPresent() const`                         | Checks if there is a query part.
+
+Operation                                             | Description
+----------------------------------------------------- | ----------------------------------
+`URL Normalize() const`                               | Normalizes the URL (expensive).
 
 
 ## Project layout
