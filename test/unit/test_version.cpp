@@ -19,7 +19,7 @@ TEST(Version, regular) {
 
 
 TEST(Version, V0_1_0) {
-    std::uint32_t version = MAKE_VERSION(0, 1, 0);
-    EXPECT_EQ(static_cast<unsigned int>((0) << 24 | (1) << 16 | (0)), version);
-    EXPECT_EQ(GetHCSUrlVersion_0_1_0(), version);
+    std::uint32_t version = MAKE_VERSION(1, 0, 0);
+    EXPECT_EQ(static_cast<unsigned int>((1) << 24 | (0) << 16 | (0)), version);
+    EXPECT_EQ(GetHCSUrlVersion_1_0_0(), version);
 }
