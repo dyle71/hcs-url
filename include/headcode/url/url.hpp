@@ -10,6 +10,7 @@
 #define HEADCODE_SPACE_URL_URL_HPP
 
 
+#include "url_core.hpp"
 #include "version.hpp"
 
 

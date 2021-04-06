@@ -6,9 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-04-06
+### Added
+- Initial release
 
 
 [Unreleased]: https://gitlab.com/headcode.space/url/-/tree/develop
+[1.0.0]: https://gitlab.com/headcode.space/url/-/releases/v1.0.0
 
 
 ---

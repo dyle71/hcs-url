@@ -1,8 +1,33 @@
 # hcs-url
 
-This C++17 library which is capable of parsing and resolving URLs quickly.
+This C++17 header-only library which is capable of parsing and resolving URLs (URIs) quickly as
+defined in the RFC 3968.
 
-__TBD__
+Small. Fast. Header-only.
+
+Example:
+
+```c++
+#include <iostream>
+#include <headcode/url/url.hpp>
+
+using namespace headcode::url;
+
+int main(int argc, char ** argv) {
+
+    URL url{"https://www.example.com/path/to/resource?foo&bar=1337"};
+    std::cout
+        << url.GetScheme()                  // Yields: "https"
+        << url.GetHost()                    // Yields: "www.example.com"
+        << url.GetPath()                    // Yields: "/path/to/resource"
+        << url.GetPathPart(2)               // Yields: "/path/to"
+        << url.GetQuery()                   // Yields: "foo&bar=1337"
+        << url.GetQueryItems()[1]           // Yields: "bar=1337"
+        << std::endl;
+    
+    return 0;
+}
+```
 
 
 ## Philosophy
@@ -42,8 +67,61 @@ SonarQube instance for hcs-benchmark: https://sonar.ddns.headcode.space/dashboar
 
 ## The API
 
-__TBD__
+There's not really much to say about the API. It's really small and centers around the URL
+class. The basic idea is, that you create an object of this class by providing a string as
+an url to parse. All is handled internally as std::string_view and indexes into the
+given string.
 
+So, basically it is this:
+
+```c++
+    auto s = "https://some.web-site.com";
+    headcode::url::URL url{s};
+    ...
+```
+
+An error can be checked with this:
+```c++
+    auto s = "https://    some.web-site.com";
+    headcode::url::URL url{s};
+    if (url.GetError() != ParseError::kNoError) {
+        std::cerr << "Meehhh... bad url." << std::endl;
+    }
+    ...
+```
+
+Oh, and there are some convenient methods too, like path segments and path parts
+as well as query parameter splitting.
+
+General methods                                       | Description
+----------------------------------------------------- | ----------------------------------
+`std::string const & GetURL() const`                  | Gets the URL passed.
+`ParseError GetError() const`                         | Returns the parsing error.
+`bool IsValid() const`                                | Checks if the URL passed in is valid.
+
+Accessor methods                                      | Description
+----------------------------------------------------- | ----------------------------------
+`std::string_view GetAuthority() const`               | Returns the authority of the URL.
+`std::string_view GetFragment() const`                | Returns the fragment of the URL.
+`std::string_view GetHost() const`                    | Returns the host of the URL.
+`std::string_view GetPath() const`                    | Returns the full path of the URL.
+`std::string_view GetPathPart(std::size_t n) const`   | Returns the path up to the n-th segment of the URL.
+`std::string_view GetPort() const`                    | Returns the port of the URL.
+`std::string_view GetQuery() const`                   | Returns the full query of the URL.
+`std::vector<std::string_view> GetQueryItems() const` | Returns the collection of parsed query items of the URL.
+`std::string_view GetScheme() const`                  | Returns the scheme of the URL.
+`std::vector<std::string_view> GetSegments() const`   | Returns the collection of parsed path segments.
+`std::string_view GetUserInfo() const`                | Returns the user info within the authority.
+
+Observer methods                                      | Description
+----------------------------------------------------- | ----------------------------------
+`bool IsFragmentPresent() const`                      | Checks if there is a fragment part.
+`bool IsPathAbsolute() const`                         | Returns `true` if the path is absolute.
+`bool IsQueryPresent() const`                         | Checks if there is a query part.
+
+Operation                                             | Description
+----------------------------------------------------- | ----------------------------------
+`URL Normalize() const`                               | Normalizes the URL (expensive).
 
 
 ## Project layout

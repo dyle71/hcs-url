@@ -25,8 +25,8 @@ ENABLE_TESTING()
 # ------------------------------------------------------------
 # Project Version
 
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -51,6 +51,16 @@ add_definitions(-DVERSION_PATCH=${VERSION_PATCH})
 add_definitions(-DVERSION=\"${VERSION}\")
 add_definitions(-D_GNU_SOURCE)
 add_definitions(-D_DEFAULT_SOURCE)
+
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+if (${FORCE_COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options(-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options(-fcolor-diagnostics)
+    endif ()
+endif ()
+
 
 # ---- fix C++ standard used ----
 
@@ -160,7 +170,7 @@ if ("${CPACK_GENERATOR}" STREQUAL "DEB")
     include(cmake/deb-package.cmake)
 
     # only works inside a GitLab CI/CD runner
-    set(GITLAB_PACKAGE_BASE_URL "https://gitlab.com/api/v4/projects/24027883/packages/generic/hcs-url")
+    set(GITLAB_PACKAGE_BASE_URL "https://gitlab.com/api/v4/projects/25468434/packages/generic/hcs-url")
     set(PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.deb")
     set(PACKAGE_FILE "${CMAKE_BINARY_DIR}/${PACKAGE_FILE_NAME}")
     include(gitlab-package-push)
@@ -174,7 +184,7 @@ if ("${CPACK_GENERATOR}" STREQUAL "RPM")
     include(cmake/rpm-package.cmake)
 
     # only works inside a GitLab CI/CD runner
-    set(GITLAB_PACKAGE_BASE_URL "https://gitlab.com/api/v4/projects/24027883/packages/generic/hcs-url")
+    set(GITLAB_PACKAGE_BASE_URL "https://gitlab.com/api/v4/projects/25468434/packages/generic/hcs-url")
     set(PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.rpm")
     set(PACKAGE_FILE "${CMAKE_BINARY_DIR}/${PACKAGE_FILE_NAME}")
     include(gitlab-package-push)
