@@ -10,6 +10,7 @@
 
 [build_requires]
 gtest/1.10.0
+hcs-benchmark/1.1.2@headcode.space+benchmark/stable
 
 [generators]
 cmake
