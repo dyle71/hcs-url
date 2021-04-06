@@ -13,6 +13,13 @@
 #include <headcode/url/url.hpp>
 
 
+TEST(URL, start) {
+    auto raw = "file:///tmp";
+    auto url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+}
+
+
 TEST(URL, empty) {
 
     auto url1 = headcode::url::URL{};
@@ -126,6 +133,7 @@ TEST(URL, regular) {
 
     raw = "blah://";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -145,6 +153,7 @@ TEST(URL, regular) {
 
     raw = "blah:/";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -153,7 +162,7 @@ TEST(URL, regular) {
     EXPECT_TRUE(url.IsPathAbsolute());
     segments = url.GetSegments();
     ASSERT_TRUE(segments.size() == 1);
-    ASSERT_TRUE(segments[0].empty());
+    EXPECT_TRUE(segments[0].empty());
     EXPECT_TRUE(url.GetPort().empty());
     EXPECT_TRUE(url.GetScheme() == "blah");
     EXPECT_TRUE(url.GetUserInfo().empty());
@@ -165,6 +174,7 @@ TEST(URL, regular) {
 
     raw = "blah:/absolute/path";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -189,6 +199,7 @@ TEST(URL, regular) {
 
     raw = "ftp://ftp.is.co.za/rfc/rfc1808.txt";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "ftp.is.co.za");
@@ -213,6 +224,7 @@ TEST(URL, regular) {
 
     raw = "ftp://john.doe@ftp.is.co.za/rfc/rfc1808.txt";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "john.doe@ftp.is.co.za");
@@ -237,6 +249,7 @@ TEST(URL, regular) {
 
     raw = "https://[::1]";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "[::1]");
@@ -256,6 +269,7 @@ TEST(URL, regular) {
 
     raw = "https://[v123ab.345:32:!(999a99]";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "[v123ab.345:32:!(999a99]");
@@ -275,6 +289,7 @@ TEST(URL, regular) {
 
     raw = "git+ssh://www.%20ietf%ff";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "www.%20ietf%ff");
@@ -293,6 +308,7 @@ TEST(URL, regular) {
 
     raw = "http://www.ietf.org/rfc/rfc2396.txt";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "www.ietf.org");
@@ -317,6 +333,7 @@ TEST(URL, regular) {
 
     raw = "ldap://[2001:db8::7]/c=GB?objectClass?one";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "[2001:db8::7]");
@@ -340,6 +357,7 @@ TEST(URL, regular) {
 
     raw = "mailto:John.Doe@example.com";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -360,6 +378,7 @@ TEST(URL, regular) {
 
     raw = "news:comp.infosystems.www.servers.unix";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -382,6 +401,7 @@ TEST(URL, regular) {
 
     raw = "tel:+1-816-555-1212";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -404,6 +424,7 @@ TEST(URL, regular) {
 
     raw = "telnet://192.0.2.16:80/";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "192.0.2.16:80");
@@ -424,6 +445,7 @@ TEST(URL, regular) {
 
     raw = "urn:oasis:names:specification:docbook:dtd:xml:4.1.2";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority().empty());
@@ -446,6 +468,7 @@ TEST(URL, regular) {
 
     raw = "https://user:password@some.host:999//path///to%30%31/__resource#token/with?some;special/valid/chars";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_STREQ(url.GetURL().data(), raw);
     EXPECT_FALSE(url.GetScheme().empty());
     EXPECT_TRUE(url.GetAuthority() == "user:password@some.host:999");
@@ -478,6 +501,7 @@ TEST(URL, regular) {
 
     raw = "https://example.com/";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_TRUE(url.IsPathAbsolute());
     EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
@@ -486,6 +510,7 @@ TEST(URL, regular) {
 
     raw = "https://example.com/?";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_TRUE(url.IsPathAbsolute());
     EXPECT_TRUE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
@@ -496,6 +521,7 @@ TEST(URL, regular) {
 
     raw = "https://example.com?";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_FALSE(url.IsPathAbsolute());
     EXPECT_TRUE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
@@ -506,6 +532,7 @@ TEST(URL, regular) {
 
     raw = "https://example.com/#";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_TRUE(url.IsPathAbsolute());
     EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
@@ -516,12 +543,58 @@ TEST(URL, regular) {
 
     raw = "https://example.com#";
     url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
     EXPECT_FALSE(url.IsPathAbsolute());
     EXPECT_FALSE(url.IsQueryPresent());
     EXPECT_TRUE(url.GetQuery().empty());
     query_items = url.GetQueryItems();
     EXPECT_TRUE(query_items.empty());
     EXPECT_TRUE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "http://127.0.0.1";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_FALSE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "http://10.0.0.1";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_FALSE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "http://[1::2:127.0.0.1]";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_FALSE(url.IsPathAbsolute());
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
+    EXPECT_TRUE(url.GetFragment().empty());
+
+    raw = "file:///tmp";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+    EXPECT_TRUE(url.IsPathAbsolute());
+    EXPECT_TRUE(url.GetPath() == "/tmp");
+    EXPECT_FALSE(url.IsQueryPresent());
+    EXPECT_TRUE(url.GetQuery().empty());
+    query_items = url.GetQueryItems();
+    EXPECT_TRUE(query_items.empty());
+    EXPECT_FALSE(url.IsFragmentPresent());
     EXPECT_TRUE(url.GetFragment().empty());
 }
 
@@ -585,6 +658,16 @@ TEST(URL, bad_host) {
     EXPECT_FALSE(url.IsValid());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidHost);
 
+    // Hence: "12345.6789.12345.6789" is not an IPv4 but is qualified as a reg-name by the RFC.
+    raw = "http://12345.6789.12345.6789";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+
+    // Hence: ".12345.6789.12345" is not an IPv4 but is qualified as a reg-name by the RFC.
+    raw = "http://.12345.6789.12345";
+    url = headcode::url::URL{raw};
+    EXPECT_TRUE(url.IsValid());
+
     // Hence: "123.4." is not an IPv4 but is qualified as a reg-name by the RFC.
     raw = "http://123.4.";
     url = headcode::url::URL{raw};
@@ -608,6 +691,11 @@ TEST(URL, bad_host) {
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidHost);
 
     raw = "http://[]";
+    url = headcode::url::URL{raw};
+    EXPECT_FALSE(url.IsValid());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidHost);
+
+    raw = "http://[v1.[]";
     url = headcode::url::URL{raw};
     EXPECT_FALSE(url.IsValid());
     EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidHost);
@@ -668,6 +756,28 @@ TEST(URL, bad_path) {
 }
 
 
+TEST(URL, bad_query) {
+
+    // Illegal characters in query.
+
+    auto raw = "http://host:1234/bad/query?]";
+    auto url = headcode::url::URL{raw};
+    EXPECT_FALSE(url.IsValid());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidQuery);
+}
+
+
+TEST(URL, bad_fragment) {
+
+    // Illegal characters in fragment.
+
+    auto raw = "http://host:1234/#bad/fragment]";
+    auto url = headcode::url::URL{raw};
+    EXPECT_FALSE(url.IsValid());
+    EXPECT_EQ(url.GetError(), headcode::url::ParseError::kInvalidFragment);
+}
+
+
 TEST(URL, move_or_url) {
 
     headcode::url::URL url;
@@ -697,4 +807,8 @@ TEST(url, normalize) {
     url = headcode::url::URL{raw}.Normalize();
     EXPECT_TRUE(url.IsValid());
     EXPECT_TRUE(url.GetURL() == "example://example.com/a/path?with&a&qu%3fery=param#an%61d_a_fragment");
+
+    raw = "";
+    url = headcode::url::URL{raw}.Normalize();
+    EXPECT_TRUE(url.GetURL().empty());
 }

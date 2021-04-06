@@ -786,12 +786,6 @@ inline std::tuple<ParseError, std::string::size_type> ParsePath(
 
     } while (i < path_part.size());
 
-    // RFC defines that the first segment may not be empty
-    // if we lack an authority but start absolute.
-    if (!authority_present && !segments.empty() && (segments.at(0).second == 0)) {
-        return {ParseError::kInvalidPath, last};
-    }
-
     return {ParseError::kNoError, last};
 }
 
